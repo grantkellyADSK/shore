@@ -13,6 +13,7 @@ import (
 // Abstraction for different configuration languages (I.E. Jsonnet/HCL/CUELang)
 func NewRenderCommand(d *Dependencies) *cobra.Command {
 	var renderValues string
+	var overrideValues string
 
 	cmd := &cobra.Command{
 		Use:   "render",
@@ -21,7 +22,7 @@ func NewRenderCommand(d *Dependencies) *cobra.Command {
 Automatically reads libraries from "vendor/". The Jsonnet-Bundler default path for libraries`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			settingsBytes, err := config.LoadConfig(d.Project, renderValues, "render")
+			settingsBytes, err := config.LoadConfigWithOverrides(d.Project, renderValues, overrideValues, "render")
 
 			var confErr *config.FileConfErr
 
@@ -41,6 +42,7 @@ Automatically reads libraries from "vendor/". The Jsonnet-Bundler default path f
 	}
 
 	cmd.Flags().StringVarP(&renderValues, "values", "r", "", "A JSON string for the render. If not provided the render.[json/yml/yaml] file is used.")
+	cmd.Flags().StringVar(&overrideValues, "overrides", "", "Override values in the file.")
 
 	return cmd
 }

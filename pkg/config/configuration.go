@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Autodesk/shore/pkg/project"
+	"github.com/google/go-jsonnet"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/afero"
@@ -174,4 +175,19 @@ func LoadConfig(p *project.Project, flag string, fileName string) ([]byte, error
 		return nil, err
 	}
 	return configData, nil
+}
+
+// LoadConfigWithOverrides - loads a shore config with overrides from the command line
+func LoadConfigWithOverrides(p *project.Project, flag string, overrides string, fileName string) ([]byte, error) {
+	configData, err := LoadConfig(p, flag, fileName)
+	if err != nil {
+		return nil, err
+	}
+	// Patch configData with values from the overrides by evaluating as jsonnet
+	j := jsonnet.MakeVM()
+	combined, err := j.EvaluateAnonymousSnippet("overrides", string(configData)+" + "+overrides)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(combined), nil
 }
